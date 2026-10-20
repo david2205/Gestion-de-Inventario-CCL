@@ -63,7 +63,7 @@ public class AuthService : IAuthService
     {
         if (await _context.Users.AnyAsync(user => user.Username == request.Username))
         {
-            throw new InvalidOperationException("El nombre de usuario ya está registrado.");
+            throw new DuplicateUsernameException();
         }
 
         var now = DateTime.UtcNow;
@@ -92,7 +92,7 @@ public class AuthService : IAuthService
             })
         {
             _context.Entry(user).State = EntityState.Detached;
-            throw new InvalidOperationException("El nombre de usuario ya está registrado.", exception);
+            throw new DuplicateUsernameException(exception);
         }
 
         return CreateAuthResponse(user);
