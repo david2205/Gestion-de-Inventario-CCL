@@ -1,4 +1,5 @@
 ﻿import 'bootstrap/dist/css/bootstrap.min.css';
+import './custom.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './custom.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -11,6 +12,7 @@ import Register from './pages/Register.jsx';
 import Inventory from './pages/Inventory.jsx';
 import Products from './pages/Products.jsx';
 import Movements from './pages/Movements.jsx';
+
 
 export default function App() {
   return (

@@ -120,6 +120,10 @@ a:hover {
   color: inherit;
 }
 
+.card-header :is(h1, h2, h3, h4, h5, h6).text-dark {
+  color: var(--ccl-white) !important;
+}
+
 .table {
   --bs-table-color: var(--ccl-black);
 }
