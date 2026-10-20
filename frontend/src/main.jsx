@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthProvider.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Inventory from './pages/Inventory.jsx'
+import Products from './pages/Products.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Navbar from './components/Navbar.jsx'
 
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')).render(
           <Route element={<ProtectedRoute><Navbar /><Outlet /></ProtectedRoute>}>
             <Route path="/" element={<Inventory />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/products" element={<Products />} />
           </Route>
           <Route path="*" element={<App />} />
         </Routes>
