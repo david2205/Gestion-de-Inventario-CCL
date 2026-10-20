@@ -38,7 +38,7 @@ public class ProductService : IProductService
     {
         if (await _context.Products.AnyAsync(product => product.Code == request.Code))
         {
-            throw new InvalidOperationException($"Ya existe un producto con el código '{request.Code}'.");
+            throw new DuplicateProductCodeException(request.Code);
         }
 
         var now = DateTime.UtcNow;
@@ -68,8 +68,7 @@ public class ProductService : IProductService
             })
         {
             _context.Entry(product).State = EntityState.Detached;
-            throw new InvalidOperationException(
-                $"Ya existe un producto con el código '{request.Code}'.", exception);
+            throw new DuplicateProductCodeException(request.Code, exception);
         }
 
         return MapToResponse(product);

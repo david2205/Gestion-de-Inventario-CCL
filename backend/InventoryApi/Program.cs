@@ -1,6 +1,9 @@
 using InventoryApi.Data;
 using InventoryApi.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,27 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("La configuración 'ConnectionStrings:DefaultConnection' es obligatoria.")));
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var key = builder.Configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException("La configuración 'Jwt:Key' es obligatoria.");
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"]
+                ?? throw new InvalidOperationException("La configuración 'Jwt:Issuer' es obligatoria."),
+            ValidAudience = builder.Configuration["Jwt:Audience"]
+                ?? throw new InvalidOperationException("La configuración 'Jwt:Audience' es obligatoria."),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        };
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -22,6 +46,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 var summaries = new[]
