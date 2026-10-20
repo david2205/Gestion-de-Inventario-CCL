@@ -49,6 +49,8 @@ export function AuthProvider({ children }) {
       password,
       fullName,
       role,
+    }, {
+      skipAuthRedirect: true,
     });
 
     return data;
