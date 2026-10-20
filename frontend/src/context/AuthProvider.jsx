@@ -27,7 +27,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(getStoredUser);
 
   const login = useCallback(async (username, password) => {
-    const { data } = await axios.post('/auth/login', { username, password });
+    const { data } = await axios.post('/auth/login', { username, password }, {
+      skipAuthRedirect: true,
+    });
     const authenticatedUser = {
       username: data.username,
       role: data.role,
