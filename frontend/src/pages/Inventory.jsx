@@ -1,135 +1,176 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, Badge, Container, Form, Spinner, Table } from 'react-bootstrap';
-import axios from '../api/axios';
+import { useEffect, useState } from 'react';
+import { Table, Form, InputGroup, Row, Col, Spinner, Card } from 'react-bootstrap';
+import api from '../api/axios';
 
-const dateFormatter = new Intl.DateTimeFormat('es-CO', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
-
-function formatDate(value) {
-  if (!value) {
-    return 'Sin registros';
-  }
-
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Fecha no disponible' : dateFormatter.format(date);
-}
-
-export default function Inventory() {
+function Inventory() {
   const [items, setItems] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadInventory() {
-      try {
-        const { data } = await axios.get('/inventory/current', { signal: controller.signal });
-
-        if (!controller.signal.aborted) {
-          setItems(data);
-        }
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          setError(
-            error.response?.data?.detail
-              || error.response?.data?.title
-              || error.message
-              || 'No se pudo cargar el inventario.',
-          );
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadInventory();
-
-    return () => controller.abort();
+    fetchInventory();
   }, []);
 
-  const filteredItems = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase('es');
+  useEffect(() => {
+    if (!search.trim()) {
+      setFiltered(items);
+    } else {
+      const q = search.toLowerCase();
+      setFiltered(
+        items.filter(
+          (i) =>
+            i.productName.toLowerCase().includes(q) ||
+            i.productCode.toLowerCase().includes(q)
+        )
+      );
+    }
+  }, [search, items]);
 
-    return items.filter((item) => (
-      item.productName.toLocaleLowerCase('es').includes(query)
-        || item.productCode.toLocaleLowerCase('es').includes(query)
-    ));
-  }, [items, search]);
+  const fetchInventory = async () => {
+    try {
+      const res = await api.get('/inventory/current');
+      setItems(res.data);
+    } catch {
+      // handled by interceptor
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalProducts = items.length;
+  const totalStock = items.reduce((sum, i) => sum + i.currentStock, 0);
+  const lowStockCount = items.filter((i) => i.isLowStock).length;
 
   return (
-    <main className="bg-light flex-grow-1 text-start">
-      <Container className="py-4 py-md-5">
-        <h1 className="h3 text-dark mt-0 mb-2">Inventario</h1>
-        <p className="text-secondary mb-4">Consulta las existencias y el estado de tus productos.</p>
+    <div className="container py-4 fade-in">
+      <div className="page-header">
+        <h2>Inventario Actual</h2>
+      </div>
 
-        <Form.Group className="mb-4" controlId="inventory-search">
-          <Form.Label>Buscar por nombre o código</Form.Label>
-          <Form.Control
-            type="search"
-            placeholder="Escribe el nombre o código del producto"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            disabled={loading || Boolean(error)}
-          />
-        </Form.Group>
-
-        {loading ? (
-          <div className="text-center py-5" role="status">
-            <Spinner animation="border" variant="primary" aria-hidden="true" />
-            <p className="text-secondary mt-3">Cargando inventario…</p>
+      {/* Stats Cards */}
+      <Row className="g-3 mb-4">
+        <Col xs={12} sm={6} lg={3}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{totalProducts}</h3>
+              <p>Productos</p>
+            </div>
           </div>
-        ) : error ? (
-          <Alert variant="danger">{error}</Alert>
-        ) : (
-          <Table responsive striped hover bordered className="align-middle bg-white">
-            <caption className="visually-hidden">Existencias actuales de productos</caption>
-            <thead className="table-dark">
-              <tr>
-                <th scope="col">Código</th>
-                <th scope="col">Nombre</th>
-                <th scope="col">Descripción</th>
-                <th scope="col" className="text-end">Stock Actual</th>
-                <th scope="col" className="text-end">Stock Mínimo</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Última Entrada</th>
-                <th scope="col">Última Salida</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center text-secondary py-4">
-                    {items.length === 0
-                      ? 'No hay productos en el inventario.'
-                      : 'No se encontraron productos con ese nombre o código.'}
-                  </td>
-                </tr>
-              ) : filteredItems.map((item) => (
-                <tr key={item.productId}>
-                  <td>{item.productCode}</td>
-                  <td>{item.productName}</td>
-                  <td>{item.description || 'Sin descripción'}</td>
-                  <td className="text-end">{item.currentStock}</td>
-                  <td className="text-end">{item.minStock}</td>
-                  <td>
-                    <Badge bg={item.isLowStock ? 'danger' : 'success'}>
-                      {item.isLowStock ? 'Bajo' : 'OK'}
-                    </Badge>
-                  </td>
-                  <td className="text-nowrap">{formatDate(item.lastEntryDate)}</td>
-                  <td className="text-nowrap">{formatDate(item.lastExitDate)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </Container>
-    </main>
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{totalStock.toLocaleString()}</h3>
+              <p>Unidades totales</p>
+            </div>
+          </div>
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{lowStockCount}</h3>
+              <p>Stock bajo</p>
+            </div>
+          </div>
+        </Col>
+        <Col xs={12} sm={6} lg={3}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{totalProducts - lowStockCount}</h3>
+              <p>Stock normal</p>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Search */}
+      <Card className="mb-0">
+        <Card.Header className="d-flex align-items-center justify-content-between">
+          <span>Lista de Inventario</span>
+          <InputGroup style={{ maxWidth: 320 }}>
+            <Form.Control
+              placeholder="Buscar por nombre o código..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              size="sm"
+            />
+          </InputGroup>
+        </Card.Header>
+        <Card.Body className="p-0">
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" style={{ color: 'var(--ccl-blue)' }} />
+              <p className="mt-2 text-muted">Cargando inventario...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="empty-state">
+              <h5>No se encontraron productos</h5>
+              <p>Intenta con otro término de búsqueda</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <Table hover className="mb-0">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Descripción</th>
+                    <th className="text-center">Stock</th>
+                    <th className="text-center">Mínimo</th>
+                    <th className="text-center">Estado</th>
+                    <th>Última Entrada</th>
+                    <th>Última Salida</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((item) => (
+                    <tr
+                      key={item.productId}
+                      className={item.isLowStock ? 'low-stock-row' : ''}
+                    >
+                      <td>
+                        <code style={{ fontSize: '0.82rem', color: 'var(--ccl-blue)' }}>
+                          {item.productCode}
+                        </code>
+                      </td>
+                      <td style={{ fontWeight: 500, color: 'var(--ccl-black)' }}>
+                        {item.productName}
+                      </td>
+                      <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.description || '—'}
+                      </td>
+                      <td className="text-center" style={{ fontWeight: 600 }}>
+                        {item.currentStock}
+                      </td>
+                      <td className="text-center">{item.minStock}</td>
+                      <td className="text-center">
+                        {item.isLowStock ? (
+                          <span className="badge bg-danger">Stock bajo</span>
+                        ) : (
+                          <span className="badge bg-success">Normal</span>
+                        )}
+                      </td>
+                      <td>
+                        {item.lastEntryDate
+                          ? new Date(item.lastEntryDate).toLocaleDateString('es-CO')
+                          : '—'}
+                      </td>
+                      <td>
+                        {item.lastExitDate
+                          ? new Date(item.lastExitDate).toLocaleDateString('es-CO')
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+    </div>
   );
 }
+
+export default Inventory;

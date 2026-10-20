@@ -63,6 +63,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(() => ({
+    token: user?.token ?? null,
     user,
     login,
     register,

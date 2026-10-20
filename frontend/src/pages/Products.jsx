@@ -1,275 +1,217 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, Container, Form, Modal, Spinner, Table } from 'react-bootstrap';
+import { useEffect, useState } from 'react';
+import {
+  Table, Button, Modal, Form, Spinner, Card, Row, Col,
+} from 'react-bootstrap';
+import api from '../api/axios';
 import { toast } from 'react-toastify';
-import axios from '../api/axios';
 
-const emptyForm = { code: '', name: '', description: '', minStock: '0' };
+const emptyProduct = { code: '', name: '', description: '', stock: 0, minStock: 0 };
 
-function errorMessage(error, fallback) {
-  const problem = error.response?.data;
-  const validationErrors = problem?.errors
-    ? Object.values(problem.errors).flat().join(' ')
-    : '';
-
-  return problem?.detail || validationErrors || problem?.title || error.message || fallback;
-}
-
-export default function Products() {
+function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [form, setForm] = useState(emptyForm);
+  const [show, setShow] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(emptyProduct);
   const [saving, setSaving] = useState(false);
-  const [productToDelete, setProductToDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const busy = saving || deleting;
 
-  const loadProducts = useCallback(async (signal) => {
+  useEffect(() => { fetchProducts(); }, []);
+
+  const fetchProducts = async () => {
     try {
-      const { data } = await axios.get('/products', { signal });
-      if (!signal?.aborted) {
-        setProducts(data);
-      }
-    } catch (error) {
-      if (!signal?.aborted) {
-        const message = errorMessage(error, 'No se pudieron cargar los productos.');
-        setLoadError(message);
-        toast.error(message);
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  }, []);
+      const res = await api.get('/products');
+      setProducts(res.data);
+    } catch { /* interceptor */ }
+    finally { setLoading(false); }
+  };
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: ['stock', 'minStock'].includes(name) ? Number(value) : value });
+  };
 
-    async function initialize() {
-      await loadProducts(controller.signal);
-    }
+  const openCreate = () => { setEditing(null); setForm(emptyProduct); setShow(true); };
+  const openEdit = (p) => {
+    setEditing(p);
+    setForm({ code: p.code, name: p.name, description: p.description || '', stock: p.stock, minStock: p.minStock });
+    setShow(true);
+  };
 
-    initialize();
-    return () => controller.abort();
-  }, [loadProducts]);
-
-  async function reloadProducts() {
-    setLoading(true);
-    setLoadError('');
-    await loadProducts();
-  }
-
-  function openProductForm(product = null) {
-    setEditingProduct(product);
-    setForm(product ? {
-      code: product.code,
-      name: product.name,
-      description: product.description ?? '',
-      minStock: String(product.minStock),
-    } : { ...emptyForm });
-    setShowForm(true);
-  }
-
-  function updateField(event) {
-    const { name, value } = event.target;
-    setForm((previous) => ({ ...previous, [name]: value }));
-  }
-
-  async function saveProduct(event) {
-    event.preventDefault();
-    if (busy) return;
-
-    const minStock = Number(form.minStock);
-    if (!form.code.trim() || !form.name.trim()) {
-      toast.error('El código y el nombre son obligatorios.');
-      return;
-    }
-    if (form.minStock === '' || !Number.isInteger(minStock) || minStock < 0 || minStock > 2147483647) {
-      toast.error('El stock mínimo debe ser un entero entre 0 y 2147483647.');
-      return;
-    }
-
+  const handleSave = async (e) => {
+    e.preventDefault();
     setSaving(true);
-    const payload = {
-      name: form.name.trim(),
-      description: form.description.trim() || null,
-      minStock,
-    };
-
     try {
-      if (editingProduct) {
-        await axios.put(`/products/${editingProduct.id}`, payload);
+      if (editing) {
+        await api.put(`/products/${editing.id}`, form);
+        toast.success('Producto actualizado correctamente');
       } else {
-        await axios.post('/products', { ...payload, code: form.code.trim() });
+        await api.post('/products', form);
+        toast.success('Producto creado correctamente');
       }
+      setShow(false);
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Error al guardar el producto');
+    } finally { setSaving(false); }
+  };
 
-      setShowForm(false);
-      toast.success(editingProduct ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.');
-      await reloadProducts();
-    } catch (error) {
-      toast.error(errorMessage(error, 'No se pudo guardar el producto.'));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function deleteProduct() {
-    if (busy || !productToDelete) return;
-    setDeleting(true);
-
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)) return;
     try {
-      await axios.delete(`/products/${productToDelete.id}`);
-      setProductToDelete(null);
-      toast.success('Producto eliminado correctamente.');
-      await reloadProducts();
-    } catch (error) {
-      toast.error(errorMessage(error, 'No se pudo eliminar el producto.'));
-    } finally {
-      setDeleting(false);
+      await api.delete(`/products/${id}`);
+      toast.success('Producto eliminado');
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Error al eliminar');
     }
-  }
+  };
 
   return (
-    <main className="bg-light flex-grow-1 text-start">
-      <Container className="py-4 py-md-5">
-        <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-          <div>
-            <h1 className="h3 text-dark mt-0 mb-2">Productos</h1>
-            <p className="text-secondary">Administra el catálogo y el stock mínimo de tus productos.</p>
-          </div>
-          <Button onClick={() => openProductForm()} disabled={loading || busy}>
-            Nuevo Producto
-          </Button>
-        </div>
+    <div className="container py-4 fade-in">
+      <div className="page-header">
+        <h2>Gestión de Productos</h2>
+        <Button variant="primary" onClick={openCreate}>
+          + Nuevo Producto
+        </Button>
+      </div>
 
-        {loading ? (
-          <div className="text-center py-5" role="status">
-            <Spinner animation="border" variant="primary" aria-hidden="true" />
-            <p className="text-secondary mt-3">Cargando productos…</p>
-          </div>
-        ) : loadError ? (
-          <Alert variant="danger">
-            <p className="mb-3">{loadError}</p>
-            <Button variant="outline-danger" onClick={reloadProducts} disabled={busy}>
-              Reintentar
-            </Button>
-          </Alert>
-        ) : (
-          <Table responsive striped hover bordered className="align-middle bg-white">
-            <caption className="visually-hidden">Catálogo de productos activos</caption>
-            <thead className="table-dark">
-              <tr>
-                <th scope="col">Código</th>
-                <th scope="col">Nombre</th>
-                <th scope="col">Descripción</th>
-                <th scope="col" className="text-end">Stock Mínimo</th>
-                <th scope="col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center text-secondary py-4">No hay productos registrados.</td>
-                </tr>
-              ) : products.map((product) => (
-                <tr key={product.id}>
-                  <td>{product.code}</td>
-                  <td>{product.name}</td>
-                  <td>{product.description || 'Sin descripción'}</td>
-                  <td className="text-end">{product.minStock}</td>
-                  <td>
-                    <div className="d-flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline-primary"
-                        onClick={() => openProductForm(product)}
-                        disabled={busy}
-                        aria-label={`Editar ${product.name}`}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline-danger"
-                        onClick={() => setProductToDelete(product)}
-                        disabled={busy}
-                        aria-label={`Eliminar ${product.name}`}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </Container>
+      <Card>
+        <Card.Header>
+          <span>Productos registrados ({products.length})</span>
+        </Card.Header>
+        <Card.Body className="p-0">
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" style={{ color: 'var(--ccl-blue)' }} />
+            </div>
+          ) : products.length === 0 ? (
+            <div className="empty-state">
+              <h5>No hay productos registrados</h5>
+              <p>Crea tu primer producto con el botón de arriba</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <Table hover className="mb-0">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th className="text-center">Stock</th>
+                    <th className="text-center">Mínimo</th>
+                    <th className="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id}>
+                      <td>
+                        <code style={{ fontSize: '0.82rem', color: 'var(--ccl-blue)' }}>
+                          {p.code}
+                        </code>
+                      </td>
+                      <td style={{ fontWeight: 500, color: 'var(--ccl-black)' }}>{p.name}</td>
+                      <td style={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.description || '—'}
+                      </td>
+                      <td className="text-center" style={{ fontWeight: 600 }}>{p.stock}</td>
+                      <td className="text-center">{p.minStock}</td>
+                      <td className="text-center">
+                        <Button variant="outline-primary" size="sm" className="me-2" onClick={() => openEdit(p)}>
+                          Editar
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={() => handleDelete(p.id, p.name)}>
+                          Eliminar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
 
-      <Modal
-        show={showForm}
-        onHide={() => { if (!saving) setShowForm(false); }}
-        backdrop={saving ? 'static' : true}
-        keyboard={!saving}
-        centered
-        aria-labelledby="product-form-title"
-      >
-        <Modal.Header closeButton={!saving}>
-          <Modal.Title id="product-form-title">{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</Modal.Title>
+      {/* Modal Create/Edit */}
+      <Modal show={show} onHide={() => setShow(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{editing ? 'Editar Producto' : 'Nuevo Producto'}</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={saveProduct} aria-busy={saving}>
+        <Form onSubmit={handleSave}>
           <Modal.Body>
-            <Form.Group className="mb-3" controlId="product-code">
-              <Form.Label>Código</Form.Label>
-              <Form.Control name="code" value={form.code} onChange={updateField} maxLength={50} required disabled={saving || Boolean(editingProduct)} />
-              {editingProduct && <Form.Text>El código se conserva al editar el producto.</Form.Text>}
+            <Form.Group className="mb-3">
+              <Form.Label>Código (SKU)</Form.Label>
+              <Form.Control
+                name="code"
+                value={form.code}
+                onChange={handleChange}
+                placeholder="Ej: PROD-011"
+                required
+                disabled={!!editing}
+              />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="product-name">
+            <Form.Group className="mb-3">
               <Form.Label>Nombre</Form.Label>
-              <Form.Control name="name" value={form.name} onChange={updateField} maxLength={150} required disabled={saving} />
+              <Form.Control
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Nombre del producto"
+                required
+              />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="product-description">
-              <Form.Label>Descripción (opcional)</Form.Label>
-              <Form.Control as="textarea" rows={3} name="description" value={form.description} onChange={updateField} disabled={saving} />
+            <Form.Group className="mb-3">
+              <Form.Label>Descripción</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Descripción opcional"
+              />
             </Form.Group>
-            <Form.Group controlId="product-min-stock">
-              <Form.Label>Stock Mínimo</Form.Label>
-              <Form.Control type="number" min={0} max={2147483647} step={1} name="minStock" value={form.minStock} onChange={updateField} required disabled={saving} />
-            </Form.Group>
+            <Row>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Stock inicial</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="stock"
+                    value={form.stock}
+                    onChange={handleChange}
+                    min={0}
+                    disabled={!!editing}
+                  />
+                </Form.Group>
+              </Col>
+              <Col>
+                <Form.Group className="mb-3">
+                  <Form.Label>Stock mínimo</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="minStock"
+                    value={form.minStock}
+                    onChange={handleChange}
+                    min={0}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowForm(false)} disabled={saving}>Cancelar</Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Guardando…' : editingProduct ? 'Guardar Cambios' : 'Crear Producto'}
+            <Button variant="outline-secondary" onClick={() => setShow(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary" disabled={saving}>
+              {saving ? <Spinner size="sm" animation="border" /> : editing ? 'Guardar cambios' : 'Crear producto'}
             </Button>
           </Modal.Footer>
         </Form>
       </Modal>
-
-      <Modal
-        show={Boolean(productToDelete)}
-        onHide={() => { if (!deleting) setProductToDelete(null); }}
-        backdrop={deleting ? 'static' : true}
-        keyboard={!deleting}
-        centered
-        aria-labelledby="delete-product-title"
-      >
-        <Modal.Header closeButton={!deleting}>
-          <Modal.Title id="delete-product-title">Eliminar Producto</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          ¿Deseas eliminar el producto <strong>{productToDelete?.name}</strong> ({productToDelete?.code})?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setProductToDelete(null)} disabled={deleting}>Cancelar</Button>
-          <Button variant="danger" onClick={deleteProduct} disabled={deleting}>
-            {deleting ? 'Eliminando…' : 'Eliminar'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </main>
+    </div>
   );
 }
+
+export default Products;

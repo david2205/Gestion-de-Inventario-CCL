@@ -1,159 +1,672 @@
+/* ============================================
+   CCL Inventory System - Custom Theme
+   Corporate Identity: CCL Blue, Black, White
+   ============================================ */
+
+/* --- CSS Variables --- */
 :root {
-  --ccl-blue: rgb(0, 87, 184);
-  --ccl-blue-alt: rgb(0, 118, 206);
-  --ccl-black: rgb(0, 0, 0);
-  --ccl-white: rgb(255, 255, 255);
-
-  --bs-primary: var(--ccl-blue);
-  --bs-primary-rgb: 0, 87, 184;
-  --bs-secondary: var(--ccl-blue-alt);
-  --bs-secondary-rgb: 0, 118, 206;
-  --bs-light-rgb: 255, 255, 255;
-  --bs-body-color: var(--ccl-black);
-  --bs-body-color-rgb: 0, 0, 0;
-  --bs-body-bg: var(--ccl-white);
-  --bs-heading-color: var(--ccl-blue);
-  --bs-link-color: var(--ccl-blue);
-  --bs-link-color-rgb: 0, 87, 184;
-  --bs-link-hover-color: var(--ccl-blue-alt);
-  --bs-link-hover-color-rgb: 0, 118, 206;
-  --bs-font-sans-serif: 'Segoe UI', Roboto, sans-serif;
-  --bs-body-font-family: var(--bs-font-sans-serif);
-  --bs-focus-ring-color: rgba(0, 87, 184, 0.25);
-  --toastify-font-family: var(--bs-font-sans-serif);
+  --ccl-blue: #0057B8;
+  --ccl-blue-alt: #0076CE;
+  --ccl-blue-dark: #003D80;
+  --ccl-blue-light: #E8F0FE;
+  --ccl-blue-hover: #004A9E;
+  --ccl-black: #1A1A2E;
+  --ccl-white: #FFFFFF;
+  --ccl-gray-50: #F8F9FC;
+  --ccl-gray-100: #EEF0F5;
+  --ccl-gray-200: #D8DCE6;
+  --ccl-gray-300: #B0B8C9;
+  --ccl-gray-500: #6B7A90;
+  --ccl-gray-700: #3D4A5C;
+  --ccl-success: #0D9F6E;
+  --ccl-danger: #E02D3C;
+  --ccl-warning: #F59E0B;
+  --ccl-info: #0076CE;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
+/* --- Global --- */
 body {
-  color: var(--ccl-black);
-  background-color: var(--ccl-white);
-  font-family: var(--bs-font-sans-serif);
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--ccl-gray-50);
+  color: var(--ccl-gray-700);
+  -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  min-height: 100svh;
+/* --- Navbar --- */
+.navbar {
+  background: var(--ccl-white) !important;
+  padding: 0 1.5rem !important;
+  min-height: 96px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: none !important;
+}
+
+.navbar-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px;
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
+  color: var(--ccl-blue-dark) !important;
+  letter-spacing: -0.3px;
+  padding: 0 !important;
+}
+
+.company-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 12px 12px 20px;
+  /* Coincide con el fondo del archivo oficial para evitar bordes visibles. */
+  background: rgb(0, 68, 158);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 88%);
+}
+
+.company-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.company-logo--navbar {
+  width: 128px;
+  margin-bottom: -12px;
+  position: relative;
+  z-index: 1;
+}
+
+.ccl-brand-text {
   display: flex;
   flex-direction: column;
+  line-height: 1.15;
 }
 
-/* La utilidad bg-dark de Bootstrap también declara !important. */
-.navbar {
-  background-color: var(--ccl-blue) !important;
-  --bs-navbar-color: var(--ccl-white);
-  --bs-navbar-hover-color: var(--ccl-white);
-  --bs-navbar-active-color: var(--ccl-white);
-  --bs-navbar-brand-color: var(--ccl-white);
-  --bs-navbar-brand-hover-color: var(--ccl-white);
-  --bs-navbar-toggler-border-color: rgba(255, 255, 255, 0.5);
+.ccl-brand-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ccl-blue-dark);
+  white-space: normal;
+}
+
+.ccl-brand-subtitle {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--ccl-gray-500);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.navbar .nav-link {
+  color: var(--ccl-blue-dark) !important;
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 0.55rem 1rem !important;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .navbar .nav-link:hover,
-.navbar .nav-link:focus-visible {
-  background-color: var(--ccl-blue-alt);
-  border-radius: var(--bs-border-radius);
-}
-
-.btn-primary {
-  --bs-btn-color: var(--ccl-white);
-  --bs-btn-bg: var(--ccl-blue);
-  --bs-btn-border-color: var(--ccl-blue);
-  --bs-btn-hover-color: var(--ccl-white);
-  --bs-btn-hover-bg: var(--ccl-blue-alt);
-  --bs-btn-hover-border-color: var(--ccl-blue-alt);
-  --bs-btn-active-color: var(--ccl-white);
-  --bs-btn-active-bg: var(--ccl-blue-alt);
-  --bs-btn-active-border-color: var(--ccl-blue-alt);
-  --bs-btn-disabled-color: var(--ccl-white);
-  --bs-btn-disabled-bg: var(--ccl-blue);
-  --bs-btn-disabled-border-color: var(--ccl-blue);
-  --bs-btn-focus-shadow-rgb: 0, 87, 184;
-}
-
-.btn-outline-primary {
-  --bs-btn-color: var(--ccl-blue);
-  --bs-btn-border-color: var(--ccl-blue);
-  --bs-btn-hover-color: var(--ccl-white);
-  --bs-btn-hover-bg: var(--ccl-blue-alt);
-  --bs-btn-hover-border-color: var(--ccl-blue-alt);
-  --bs-btn-active-color: var(--ccl-white);
-  --bs-btn-active-bg: var(--ccl-blue-alt);
-  --bs-btn-active-border-color: var(--ccl-blue-alt);
-  --bs-btn-disabled-color: var(--ccl-blue);
-  --bs-btn-disabled-bg: transparent;
-  --bs-btn-disabled-border-color: var(--ccl-blue);
-  --bs-btn-focus-shadow-rgb: 0, 87, 184;
-}
-
-.btn-secondary {
-  --bs-btn-color: var(--ccl-white);
-  --bs-btn-bg: var(--ccl-blue-alt);
-  --bs-btn-border-color: var(--ccl-blue-alt);
-  --bs-btn-hover-color: var(--ccl-white);
-  --bs-btn-hover-bg: var(--ccl-blue);
-  --bs-btn-hover-border-color: var(--ccl-blue);
-  --bs-btn-active-color: var(--ccl-white);
-  --bs-btn-active-bg: var(--ccl-blue);
-  --bs-btn-active-border-color: var(--ccl-blue);
-  --bs-btn-disabled-bg: var(--ccl-blue-alt);
-  --bs-btn-disabled-border-color: var(--ccl-blue-alt);
-  --bs-btn-focus-shadow-rgb: 0, 118, 206;
-}
-
-a {
-  color: var(--ccl-blue);
-}
-
-a:hover {
-  color: var(--ccl-blue-alt);
-}
-
-/* Los encabezados existentes usan la utilidad text-dark. */
-:is(h1, h2, h3, h4, h5, h6).text-dark {
+.navbar .nav-link.active {
   color: var(--ccl-blue) !important;
+  background: var(--ccl-blue-light);
+}
+
+.navbar .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--ccl-blue);
+  border-radius: 1px;
+}
+
+.navbar .btn-outline-light {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.navbar .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ccl-gray-700);
+  font-size: 0.85rem;
+  margin-right: 0.75rem;
+}
+
+.navbar-user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--ccl-blue-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ccl-blue);
+  border: 1.5px solid var(--ccl-gray-200);
+}
+
+/* --- Page Container --- */
+.container, .container-fluid {
+  max-width: 1280px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ccl-gray-200);
+}
+
+.page-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ccl-black);
+  margin: 0;
+}
+
+/* --- Cards --- */
+.card {
+  border: 1px solid var(--ccl-gray-200) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .card-header {
-  color: var(--ccl-white);
-  background-color: var(--ccl-blue);
+  background: var(--ccl-white) !important;
+  border-bottom: 1px solid var(--ccl-gray-200) !important;
+  padding: 1rem 1.25rem !important;
+  font-weight: 600;
+  color: var(--ccl-black);
+  font-size: 0.95rem;
 }
 
-.card-header :is(h1, h2, h3, h4, h5, h6, a) {
-  color: inherit;
+.card-body {
+  padding: 1.25rem !important;
 }
 
-.card-header :is(h1, h2, h3, h4, h5, h6).text-dark {
+/* --- Tables --- */
+.table {
+  margin-bottom: 0;
+  font-size: 0.88rem;
+}
+
+.table thead th {
+  background: var(--ccl-gray-50) !important;
+  color: var(--ccl-gray-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 2px solid var(--ccl-gray-200) !important;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 0.75rem 1rem !important;
+  vertical-align: middle;
+  color: var(--ccl-gray-700);
+  border-bottom: 1px solid var(--ccl-gray-100);
+}
+
+.table tbody tr:hover {
+  background: var(--ccl-blue-light) !important;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Buttons --- */
+.btn {
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 0.5rem 1.15rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  letter-spacing: -0.1px;
+}
+
+.btn-primary {
+  background: var(--ccl-blue) !important;
+  border-color: var(--ccl-blue) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--ccl-blue-hover) !important;
+  border-color: var(--ccl-blue-hover) !important;
+  box-shadow: 0 2px 8px rgba(0, 87, 184, 0.35) !important;
+}
+
+.btn-success {
+  background: var(--ccl-success) !important;
+  border-color: var(--ccl-success) !important;
+}
+
+.btn-success:hover {
+  background: #0B8A5E !important;
+  border-color: #0B8A5E !important;
+}
+
+.btn-danger {
+  background: var(--ccl-danger) !important;
+  border-color: var(--ccl-danger) !important;
+}
+
+.btn-danger:hover {
+  background: #C22533 !important;
+  border-color: #C22533 !important;
+}
+
+.btn-outline-primary {
+  color: var(--ccl-blue) !important;
+  border-color: var(--ccl-blue) !important;
+}
+
+.btn-outline-primary:hover {
+  background: var(--ccl-blue) !important;
   color: var(--ccl-white) !important;
 }
 
-.table {
-  --bs-table-color: var(--ccl-black);
+.btn-sm {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
 }
 
-.table > thead {
-  --bs-table-color: var(--ccl-white);
-  --bs-table-bg: var(--ccl-blue);
-  --bs-table-border-color: rgba(255, 255, 255, 0.3);
-  color: var(--ccl-white);
-  background-color: var(--ccl-blue);
+/* --- Forms --- */
+.form-control, .form-select {
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ccl-gray-200);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+  color: var(--ccl-gray-700);
 }
 
-.table > thead > tr > th {
-  color: var(--ccl-white);
-  background-color: var(--ccl-blue);
+.form-control:focus, .form-select:focus {
+  border-color: var(--ccl-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 87, 184, 0.12) !important;
 }
 
-/* Los fondos success y danger conservan los colores de estado de Bootstrap. */
+.form-label {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--ccl-gray-700);
+  margin-bottom: 0.35rem;
+}
+
+/* --- Badges --- */
 .badge {
-  --bs-badge-color: var(--ccl-white);
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 0.72rem;
+  padding: 0.35em 0.7em;
+  border-radius: 50px;
+  letter-spacing: 0.3px;
 }
 
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--ccl-blue);
-  box-shadow: 0 0 0 0.25rem rgba(0, 87, 184, 0.2);
+.badge.bg-success {
+  background: #ECFDF5 !important;
+  color: #065F46 !important;
+}
+
+.badge.bg-danger, .badge.bg-warning {
+  background: #FEF2F2 !important;
+  color: #991B1B !important;
+}
+
+.badge.bg-info {
+  background: var(--ccl-blue-light) !important;
+  color: var(--ccl-blue) !important;
+}
+
+.badge.bg-primary {
+  background: var(--ccl-blue-light) !important;
+  color: var(--ccl-blue) !important;
+}
+
+.badge.bg-secondary {
+  background: var(--ccl-gray-100) !important;
+  color: var(--ccl-gray-500) !important;
+}
+
+/* --- Login Page --- */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--ccl-blue-dark) 0%, var(--ccl-blue) 50%, var(--ccl-blue-alt) 100%);
+  padding: 2rem 1rem;
 }
 
 .login-card {
-  /* Permite combinar esta clase con la utilidad border-0 de Bootstrap. */
-  border-top: 4px solid var(--ccl-blue) !important;
+  width: 100%;
+  max-width: 420px;
+  background: var(--ccl-white);
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: none !important;
+  overflow: hidden;
+}
+
+.login-card .card-body {
+  padding: 2.5rem !important;
+}
+
+.login-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.company-logo--auth {
+  width: 144px;
+  margin-bottom: 1rem;
+}
+
+.login-logo h4 {
+  font-weight: 700;
+  color: var(--ccl-black);
+  margin-bottom: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.login-logo p {
+  color: var(--ccl-gray-500);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.login-card .btn-primary {
+  width: 100%;
+  padding: 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.login-card .form-control {
+  padding: 0.65rem 0.85rem;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--ccl-gray-500);
+}
+
+.login-footer a {
+  color: var(--ccl-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+/* --- Stats Cards (Dashboard-like) --- */
+.stat-card {
+  background: var(--ccl-white);
+  border: 1px solid var(--ccl-gray-200);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.stat-card-icon.blue {
+  background: var(--ccl-blue-light);
+  color: var(--ccl-blue);
+}
+
+.stat-card-icon.green {
+  background: #ECFDF5;
+  color: var(--ccl-success);
+}
+
+.stat-card-icon.red {
+  background: #FEF2F2;
+  color: var(--ccl-danger);
+}
+
+.stat-card-icon.yellow {
+  background: #FFFBEB;
+  color: var(--ccl-warning);
+}
+
+.stat-card-info h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ccl-black);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.stat-card-info p {
+  font-size: 0.78rem;
+  color: var(--ccl-gray-500);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
+/* --- Low Stock Highlight --- */
+.low-stock-row {
+  background: #FFF8F0 !important;
+}
+
+.low-stock-row:hover {
+  background: #FFF0E0 !important;
+}
+
+/* --- Empty State --- */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--ccl-gray-500);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.4;
+}
+
+.empty-state h5 {
+  font-weight: 600;
+  color: var(--ccl-gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  font-size: 0.88rem;
+}
+
+/* --- Alerts --- */
+.alert {
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  border: none;
+}
+
+/* --- Modals --- */
+.modal-content {
+  border-radius: var(--radius-md) !important;
+  border: none !important;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--ccl-gray-200);
+  padding: 1rem 1.5rem;
+}
+
+.modal-header .modal-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ccl-black);
+}
+
+.modal-footer {
+  border-top: 1px solid var(--ccl-gray-200);
+  padding: 0.75rem 1.5rem;
+}
+
+/* --- Toasts --- */
+.Toastify__toast {
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.88rem !important;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-card-info h3 {
+    font-size: 1.25rem;
+  }
+
+  .navbar-brand {
+    font-size: 1rem !important;
+  }
+
+  .ccl-brand-subtitle {
+    display: none;
+  }
+}
+
+/* --- Scrollbar (Webkit) --- */
+@media (max-width: 991.98px) {
+  .navbar .navbar-collapse {
+    padding: 1rem 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .navbar {
+    min-height: 72px;
+    padding: 0 0.75rem !important;
+  }
+
+  .navbar-brand {
+    gap: 10px;
+    margin-right: 0.5rem;
+  }
+
+  .company-logo--navbar {
+    width: 84px;
+    padding: 8px 8px 14px;
+    margin-bottom: -8px;
+  }
+
+  .ccl-brand-text {
+    max-width: 125px;
+  }
+
+  .ccl-brand-title {
+    font-size: 0.85rem;
+  }
+}
+
+/* --- Scrollbar (Webkit) --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ccl-gray-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ccl-gray-300);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ccl-gray-500);
+}
+
+/* --- Utility Classes --- */
+.text-ccl-blue { color: var(--ccl-blue) !important; }
+.bg-ccl-blue { background-color: var(--ccl-blue) !important; }
+.border-ccl { border-color: var(--ccl-blue) !important; }
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* --- Movement type badges --- */
+.movement-entry {
+  background: #ECFDF5 !important;
+  color: #065F46 !important;
+  font-weight: 600;
+}
+
+.movement-exit {
+  background: #FEF2F2 !important;
+  color: #991B1B !important;
+  font-weight: 600;
 }

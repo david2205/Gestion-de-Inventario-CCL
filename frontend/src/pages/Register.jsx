@@ -1,129 +1,125 @@
-import { useContext, useState } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
+import { useState } from 'react';
+import { Form, Button, Card, Spinner, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { AuthContext } from '../context/AuthContext';
+import CompanyLogo from '../components/CompanyLogo';
 
-export default function Register() {
-  const { register } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('operator');
+function Register() {
+  const [form, setForm] = useState({
+    username: '',
+    password: '',
+    fullName: '',
+    role: 'operator',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-    if (loading) {
-      return;
-    }
-
-    setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
-
+    setError('');
     try {
-      await register(username, password, fullName, role);
-      toast.success('Cuenta creada correctamente. Inicia sesión para continuar.');
-      navigate('/login', { replace: true });
-    } catch (error) {
+      await api.post('/auth/register', form);
+      toast.success('¡Cuenta creada exitosamente! Inicia sesión.');
+      navigate('/login');
+    } catch (err) {
       setError(
-        error.response?.data?.detail
-          || error.response?.data?.title
-          || (error.response?.status === 409 ? 'El nombre de usuario ya existe.' : null)
-          || error.message
-          || 'No se pudo crear la cuenta. Inténtalo de nuevo.',
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        'Error al registrar. Intenta con otro usuario.'
       );
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <Container
-      as="main"
-      fluid
-      className="d-flex align-items-center justify-content-center bg-light px-3 py-5"
-      style={{ minHeight: '100svh' }}
-    >
-      <Card className="login-card w-100 border-0 shadow-sm text-start" style={{ maxWidth: '440px' }}>
-        <Card.Body className="p-4 p-sm-5">
-          <p className="small text-secondary mb-2">Gestión de Inventario</p>
-          <Card.Title as="h1" className="h3 text-dark mt-0 mb-2">
-            Crear cuenta
-          </Card.Title>
-          <p className="text-secondary mb-4">Completa tus datos para registrarte.</p>
+    <div className="login-container">
+      <Card className="login-card">
+        <Card.Body>
+          <div className="login-logo">
+            <CompanyLogo className="company-logo--auth" />
+            <h4>Crear Cuenta</h4>
+            <p>Regístrate para acceder al sistema</p>
+          </div>
 
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && (
+            <Alert variant="danger" className="mb-3" style={{ fontSize: '0.88rem' }}>
+              {error}
+            </Alert>
+          )}
 
-          <Form onSubmit={handleSubmit} aria-busy={loading}>
-            <Form.Group className="mb-3" controlId="register-username">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                autoComplete="username"
-                maxLength={50}
-                required
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                disabled={loading}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="register-password">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={loading}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="register-full-name">
-              <Form.Label>Nombre Completo</Form.Label>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Nombre completo</Form.Label>
               <Form.Control
                 type="text"
                 name="fullName"
-                autoComplete="name"
-                maxLength={100}
+                placeholder="Ej: David Pérez"
+                value={form.fullName}
+                onChange={handleChange}
                 required
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                disabled={loading}
+                autoFocus
               />
             </Form.Group>
 
-            <Form.Group className="mb-4" controlId="register-role">
-              <Form.Label>Rol</Form.Label>
-              <Form.Select
-                name="role"
+            <Form.Group className="mb-3">
+              <Form.Label>Usuario</Form.Label>
+              <Form.Control
+                type="text"
+                name="username"
+                placeholder="Nombre de usuario"
+                value={form.username}
+                onChange={handleChange}
                 required
-                value={role}
-                onChange={(event) => setRole(event.target.value)}
-                disabled={loading}
-              >
-                <option value="admin">admin</option>
-                <option value="operator">operator</option>
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Contraseña</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                placeholder="Mínimo 6 caracteres"
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4">
+              <Form.Label>Rol</Form.Label>
+              <Form.Select name="role" value={form.role} onChange={handleChange}>
+                <option value="operator">Operador</option>
+                <option value="admin">Administrador</option>
               </Form.Select>
             </Form.Group>
 
-            <Button type="submit" className="w-100" disabled={loading}>
-              {loading ? 'Registrando…' : 'Registrarse'}
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner size="sm" animation="border" className="me-2" />
+                  Registrando...
+                </>
+              ) : (
+                'Crear Cuenta'
+              )}
             </Button>
           </Form>
 
-          <div className="text-center mt-4">
-            <Link to="/login">¿Ya tienes cuenta? Inicia sesión</Link>
+          <div className="login-footer">
+            ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
           </div>
         </Card.Body>
       </Card>
-    </Container>
+    </div>
   );
 }
+
+export default Register;

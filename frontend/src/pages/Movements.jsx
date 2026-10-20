@@ -1,291 +1,315 @@
 import { useEffect, useState } from 'react';
-import { Alert, Badge, Button, Card, Col, Container, Form, Row, Spinner, Table } from 'react-bootstrap';
+import {
+  Table, Form, Button, Row, Col, Card, Spinner, Modal,
+} from 'react-bootstrap';
+import api from '../api/axios';
 import { toast } from 'react-toastify';
-import axios from '../api/axios';
 
-function errorMessage(error, fallback) {
-  const problem = error.response?.data;
-  const validationErrors = problem?.errors ? Object.values(problem.errors).flat().join(' ') : '';
-  return problem?.detail || validationErrors || problem?.title || fallback;
-}
+function Movements() {
+  const [movements, setMovements] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    productId: '',
+    movementType: '',
+    dateFrom: '',
+    dateTo: '',
+  });
 
-const dateFormatter = new Intl.DateTimeFormat('es-CO', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('entry'); // 'entry' or 'exit'
+  const [movForm, setMovForm] = useState({ productId: '', quantity: '', note: '' });
+  const [saving, setSaving] = useState(false);
 
-function formatDate(value) {
-  const date = value ? new Date(value) : null;
-  return date && !Number.isNaN(date.getTime()) ? dateFormatter.format(date) : 'Sin fecha';
-}
+  useEffect(() => {
+    fetchProducts();
+    fetchMovements();
+  }, []);
 
-function MovementForm({ type, products, productsLoading, productsError, onRegistered }) {
-  const [productId, setProductId] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [note, setNote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const isEntry = type === 'IN';
-  const prefix = isEntry ? 'entry' : 'exit';
-  const title = isEntry ? 'Registrar Entrada' : 'Registrar Salida';
-  const disabled = submitting || productsLoading || Boolean(productsError) || products.length === 0;
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    if (disabled) return;
-
-    const selectedProductId = Number(productId);
-    const amount = Number(quantity);
-    if (!products.some((product) => product.id === selectedProductId)) {
-      toast.error('Selecciona un producto válido.');
-      return;
-    }
-    if (!Number.isInteger(amount) || amount < 1 || amount > 2147483647) {
-      toast.error('La cantidad debe ser un entero entre 1 y 2147483647.');
-      return;
-    }
-
-    setSubmitting(true);
+  const fetchProducts = async () => {
     try {
-      await axios.post(isEntry ? '/inventory/entries' : '/inventory/exits', {
-        productId: selectedProductId,
-        quantity: amount,
-        note: note.trim() || null,
-      });
+      const res = await api.get('/products');
+      setProducts(res.data);
+    } catch { /* interceptor */ }
+  };
 
-      toast.success(isEntry ? 'Entrada registrada correctamente.' : 'Salida registrada correctamente.');
-      setQuantity('1');
-      setNote('');
-      onRegistered();
-    } catch (error) {
-      toast.error(errorMessage(error, error.response?.status === 409
-        ? 'No se pudo registrar el movimiento. Verifica el stock disponible y el estado del producto.'
-        : 'No se pudo registrar el movimiento. Inténtalo de nuevo.'));
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const fetchMovements = async (f = filters) => {
+    setLoading(true);
+    try {
+      const params = {};
+      if (f.productId) params.productId = f.productId;
+      if (f.movementType) params.movementType = f.movementType;
+      if (f.dateFrom) params.dateFrom = f.dateFrom;
+      if (f.dateTo) params.dateTo = f.dateTo;
+      const res = await api.get('/inventory/movements', { params });
+      setMovements(res.data);
+    } catch { /* interceptor */ }
+    finally { setLoading(false); }
+  };
+
+  const handleFilterChange = (e) => {
+    const newFilters = { ...filters, [e.target.name]: e.target.value };
+    setFilters(newFilters);
+  };
+
+  const applyFilters = () => fetchMovements(filters);
+
+  const clearFilters = () => {
+    const empty = { productId: '', movementType: '', dateFrom: '', dateTo: '' };
+    setFilters(empty);
+    fetchMovements(empty);
+  };
+
+  // Register entry/exit
+  const openModal = (type) => {
+    setModalType(type);
+    setMovForm({ productId: '', quantity: '', note: '' });
+    setShowModal(true);
+  };
+
+  const handleMovSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    const endpoint = modalType === 'entry' ? '/inventory/entries' : '/inventory/exits';
+    try {
+      await api.post(endpoint, {
+        productId: Number(movForm.productId),
+        quantity: Number(movForm.quantity),
+        note: movForm.note,
+      });
+      toast.success(
+        modalType === 'entry'
+          ? 'Entrada registrada correctamente'
+          : 'Salida registrada correctamente'
+      );
+      setShowModal(false);
+      fetchMovements();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Error al registrar movimiento');
+    } finally { setSaving(false); }
+  };
+
+  const entryCount = movements.filter(m => m.movementType === 'IN').length;
+  const exitCount = movements.filter(m => m.movementType === 'OUT').length;
 
   return (
-    <Card as="section" className="h-100 shadow-sm" aria-labelledby={`${prefix}-title`}>
-      <Card.Body className="p-4">
-        <Card.Title as="h2" id={`${prefix}-title`} className="h5 text-dark mb-4">
-          {title}
-        </Card.Title>
-        <Form onSubmit={handleSubmit} aria-busy={submitting}>
-          <fieldset disabled={disabled} className="border-0 p-0 m-0">
-            <Form.Group className="mb-3" controlId={`${prefix}-product`}>
+    <div className="container py-4 fade-in">
+      <div className="page-header">
+        <h2>Movimientos de Inventario</h2>
+        <div className="d-flex gap-2">
+          <Button variant="success" onClick={() => openModal('entry')}>
+            Registrar Entrada
+          </Button>
+          <Button variant="danger" onClick={() => openModal('exit')}>
+            Registrar Salida
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <Row className="g-3 mb-4">
+        <Col xs={6} md={4}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{movements.length}</h3>
+              <p>Total movimientos</p>
+            </div>
+          </div>
+        </Col>
+        <Col xs={6} md={4}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{entryCount}</h3>
+              <p>Entradas</p>
+            </div>
+          </div>
+        </Col>
+        <Col xs={6} md={4}>
+          <div className="stat-card">
+            <div className="stat-card-info">
+              <h3>{exitCount}</h3>
+              <p>Salidas</p>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      {/* Filters */}
+      <Card className="mb-4">
+        <Card.Header>Filtros de búsqueda</Card.Header>
+        <Card.Body>
+          <Row className="g-3 align-items-end">
+            <Col xs={12} md={3}>
               <Form.Label>Producto</Form.Label>
-              <Form.Select value={productId} onChange={(event) => setProductId(event.target.value)} required>
-                <option value="">{productsLoading ? 'Cargando productos…' : 'Selecciona un producto'}</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>{product.code} — {product.name}</option>
+              <Form.Select name="productId" value={filters.productId} onChange={handleFilterChange} size="sm">
+                <option value="">Todos</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
+                ))}
+              </Form.Select>
+            </Col>
+            <Col xs={12} md={2}>
+              <Form.Label>Tipo</Form.Label>
+              <Form.Select name="movementType" value={filters.movementType} onChange={handleFilterChange} size="sm">
+                <option value="">Todos</option>
+                <option value="IN">Entrada</option>
+                <option value="OUT">Salida</option>
+              </Form.Select>
+            </Col>
+            <Col xs={6} md={2}>
+              <Form.Label>Desde</Form.Label>
+              <Form.Control type="date" name="dateFrom" value={filters.dateFrom} onChange={handleFilterChange} size="sm" />
+            </Col>
+            <Col xs={6} md={2}>
+              <Form.Label>Hasta</Form.Label>
+              <Form.Control type="date" name="dateTo" value={filters.dateTo} onChange={handleFilterChange} size="sm" />
+            </Col>
+            <Col xs={12} md={3} className="d-flex gap-2">
+              <Button variant="primary" size="sm" onClick={applyFilters} className="flex-grow-1">
+                Filtrar
+              </Button>
+              <Button variant="outline-secondary" size="sm" onClick={clearFilters}>
+                Limpiar
+              </Button>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {/* Movements Table */}
+      <Card>
+        <Card.Header>Historial de Movimientos</Card.Header>
+        <Card.Body className="p-0">
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" style={{ color: 'var(--ccl-blue)' }} />
+            </div>
+          ) : movements.length === 0 ? (
+            <div className="empty-state">
+              <h5>No hay movimientos registrados</h5>
+              <p>Registra tu primera entrada o salida con los botones de arriba</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <Table hover className="mb-0">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th className="text-center">Tipo</th>
+                    <th className="text-center">Cantidad</th>
+                    <th className="text-center">Stock Ant.</th>
+                    <th className="text-center">Stock Nuevo</th>
+                    <th>Nota</th>
+                    <th>Usuario</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {movements.map((m) => (
+                    <tr key={m.movementId}>
+                      <td style={{ whiteSpace: 'nowrap', fontSize: '0.82rem' }}>
+                        {new Date(m.createdAt).toLocaleString('es-CO', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </td>
+                      <td>
+                        <code style={{ fontSize: '0.82rem', color: 'var(--ccl-blue)' }}>
+                          {m.productCode}
+                        </code>
+                      </td>
+                      <td style={{ fontWeight: 500 }}>{m.productName}</td>
+                      <td className="text-center">
+                        <span className={`badge ${m.movementType === 'IN' ? 'movement-entry' : 'movement-exit'}`}>
+                          {m.movementType === 'IN' ? 'Entrada' : 'Salida'}
+                        </span>
+                      </td>
+                      <td className="text-center" style={{ fontWeight: 600 }}>{m.quantity}</td>
+                      <td className="text-center">{m.previousStock}</td>
+                      <td className="text-center" style={{ fontWeight: 600 }}>{m.newStock}</td>
+                      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {m.note || '—'}
+                      </td>
+                      <td>{m.username}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* Modal Entry/Exit */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {modalType === 'entry' ? 'Registrar Entrada' : 'Registrar Salida'}
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleMovSubmit}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Producto</Form.Label>
+              <Form.Select
+                value={movForm.productId}
+                onChange={(e) => setMovForm({ ...movForm, productId: e.target.value })}
+                required
+              >
+                <option value="">Selecciona un producto</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.code} - {p.name} (Stock: {p.stock})
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
-            <Form.Group className="mb-3" controlId={`${prefix}-quantity`}>
+            <Form.Group className="mb-3">
               <Form.Label>Cantidad</Form.Label>
               <Form.Control
                 type="number"
                 min={1}
-                max={2147483647}
-                step={1}
-                value={quantity}
-                onChange={(event) => setQuantity(event.target.value)}
+                value={movForm.quantity}
+                onChange={(e) => setMovForm({ ...movForm, quantity: e.target.value })}
+                placeholder="Cantidad de unidades"
                 required
               />
             </Form.Group>
-            <Form.Group className="mb-4" controlId={`${prefix}-note`}>
+            <Form.Group className="mb-3">
               <Form.Label>Nota (opcional)</Form.Label>
-              <Form.Control as="textarea" rows={3} value={note} onChange={(event) => setNote(event.target.value)} />
-            </Form.Group>
-            <Button type="submit" variant={isEntry ? 'success' : 'danger'} className="w-100" disabled={disabled}>
-              {submitting ? 'Registrando…' : title}
-            </Button>
-          </fieldset>
-        </Form>
-      </Card.Body>
-    </Card>
-  );
-}
-
-export default function Movements() {
-  const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [productsError, setProductsError] = useState('');
-  const [movements, setMovements] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(true);
-  const [historyError, setHistoryError] = useState('');
-  const [productFilter, setProductFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [refresh, setRefresh] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadProducts() {
-      try {
-        const { data } = await axios.get('/products', { signal: controller.signal });
-        if (!controller.signal.aborted) setProducts(data);
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          const message = errorMessage(error, 'No se pudieron cargar los productos.');
-          setProductsError(message);
-          toast.error(message);
-        }
-      } finally {
-        if (!controller.signal.aborted) setProductsLoading(false);
-      }
-    }
-
-    loadProducts();
-    return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadHistory() {
-      try {
-        const { data } = await axios.get('/inventory/movements', {
-          signal: controller.signal,
-          params: {
-            productId: productFilter ? Number(productFilter) : undefined,
-            movementType: typeFilter || undefined,
-          },
-        });
-        if (!controller.signal.aborted) setMovements(data);
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          const message = errorMessage(error, 'No se pudo cargar el historial de movimientos.');
-          setHistoryError(message);
-          toast.error(message);
-        }
-      } finally {
-        if (!controller.signal.aborted) setHistoryLoading(false);
-      }
-    }
-
-    loadHistory();
-    return () => controller.abort();
-  }, [productFilter, typeFilter, refresh]);
-
-  function refreshHistory() {
-    setHistoryLoading(true);
-    setHistoryError('');
-    setRefresh((previous) => previous + 1);
-  }
-
-  function changeFilter(setFilter, value) {
-    setHistoryLoading(true);
-    setHistoryError('');
-    setFilter(value);
-  }
-
-  return (
-    <main className="bg-light flex-grow-1 text-start">
-      <Container className="py-4 py-md-5">
-        <h1 className="h3 text-dark mt-0 mb-2">Movimientos de Inventario</h1>
-        <p className="text-secondary mb-4">Registra entradas y salidas, y consulta el historial.</p>
-
-        {productsError && <Alert variant="danger">{productsError}</Alert>}
-        {!productsLoading && !productsError && products.length === 0 && (
-          <Alert variant="info">Crea un producto antes de registrar movimientos.</Alert>
-        )}
-
-        <Row className="g-4 mb-5">
-          {['IN', 'OUT'].map((type) => (
-            <Col key={type} xs={12} md={6}>
-              <MovementForm
-                type={type}
-                products={products}
-                productsLoading={productsLoading}
-                productsError={productsError}
-                onRegistered={refreshHistory}
+              <Form.Control
+                as="textarea"
+                rows={2}
+                value={movForm.note}
+                onChange={(e) => setMovForm({ ...movForm, note: e.target.value })}
+                placeholder="Ej: Compra a proveedor, Despacho cliente..."
               />
-            </Col>
-          ))}
-        </Row>
-
-        <section aria-labelledby="movement-history-title">
-          <h2 id="movement-history-title" className="h4 text-dark mb-4">Historial de movimientos</h2>
-          <Row className="g-3 mb-4">
-            <Form.Group as={Col} xs={12} md={6} controlId="movement-product-filter">
-              <Form.Label>Filtrar por producto</Form.Label>
-              <Form.Select
-                value={productFilter}
-                onChange={(event) => changeFilter(setProductFilter, event.target.value)}
-                disabled={productsLoading || Boolean(productsError)}
-              >
-                <option value="">Todos los productos</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>{product.code} — {product.name}</option>
-                ))}
-              </Form.Select>
             </Form.Group>
-            <Form.Group as={Col} xs={12} md={6} controlId="movement-type-filter">
-              <Form.Label>Filtrar por tipo</Form.Label>
-              <Form.Select value={typeFilter} onChange={(event) => changeFilter(setTypeFilter, event.target.value)}>
-                <option value="">Todos los tipos</option>
-                <option value="IN">Entrada</option>
-                <option value="OUT">Salida</option>
-              </Form.Select>
-            </Form.Group>
-          </Row>
-
-          {historyLoading ? (
-            <div className="text-center py-5" role="status">
-              <Spinner animation="border" variant="primary" aria-hidden="true" />
-              <p className="text-secondary mt-3">Cargando movimientos…</p>
-            </div>
-          ) : historyError ? (
-            <Alert variant="danger">
-              <p className="mb-3">{historyError}</p>
-              <Button variant="outline-danger" onClick={refreshHistory}>Reintentar</Button>
-            </Alert>
-          ) : (
-            <Table responsive striped hover bordered className="align-middle bg-white">
-              <caption className="visually-hidden">Historial de entradas y salidas de inventario</caption>
-              <thead className="table-dark">
-                <tr>
-                  <th scope="col">Fecha</th>
-                  <th scope="col">Producto</th>
-                  <th scope="col">Tipo</th>
-                  <th scope="col" className="text-end">Cantidad</th>
-                  <th scope="col" className="text-end">Stock Anterior</th>
-                  <th scope="col" className="text-end">Stock Nuevo</th>
-                  <th scope="col">Nota</th>
-                  <th scope="col">Usuario</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movements.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center text-secondary py-4">No hay movimientos para los filtros seleccionados.</td>
-                  </tr>
-                ) : movements.map((movement) => (
-                  <tr key={movement.movementId}>
-                    <td className="text-nowrap">{formatDate(movement.createdAt)}</td>
-                    <td>
-                      {movement.productName}
-                      <div className="small text-secondary">{movement.productCode}</div>
-                    </td>
-                    <td>
-                      <Badge bg={movement.movementType === 'IN' ? 'success' : 'danger'}>
-                        {movement.movementType === 'IN' ? 'Entrada' : 'Salida'}
-                      </Badge>
-                    </td>
-                    <td className="text-end">{movement.quantity}</td>
-                    <td className="text-end">{movement.previousStock}</td>
-                    <td className="text-end">{movement.newStock}</td>
-                    <td>{movement.note || 'Sin nota'}</td>
-                    <td>{movement.username}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
-        </section>
-      </Container>
-    </main>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={() => setShowModal(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant={modalType === 'entry' ? 'success' : 'danger'}
+              disabled={saving}
+            >
+              {saving ? (
+                <Spinner size="sm" animation="border" />
+              ) : modalType === 'entry' ? (
+                'Registrar Entrada'
+              ) : (
+                'Registrar Salida'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+    </div>
   );
 }
+
+export default Movements;

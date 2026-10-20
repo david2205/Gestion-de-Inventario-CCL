@@ -1,96 +1,97 @@
-import { useContext, useState } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
+import { useState } from 'react';
+import { Form, Button, Card, Spinner, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
+import CompanyLogo from '../components/CompanyLogo';
 
-export default function Login() {
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
+function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-
-    if (loading) {
-      return;
-    }
-
-    setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
-
+    setError('');
     try {
       await login(username, password);
       navigate('/', { replace: true });
-    } catch (error) {
-      setError(
-        error.response?.data?.detail
-          || error.response?.data?.title
-          || error.message
-          || 'No se pudo iniciar sesión. Inténtalo de nuevo.',
-      );
+    } catch (err) {
+      setError(!err.response
+        ? 'No se pudo conectar con la API. Verifica que el backend esté disponible y permita el acceso desde este sitio.'
+        : err.response.data?.detail
+          || err.response.data?.message
+          || err.response.data?.title
+          || (err.response.status === 401
+            ? 'Credenciales incorrectas. Verifica tu usuario y contraseña.'
+            : 'No se pudo iniciar sesión. Inténtalo de nuevo.'));
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <Container
-      as="main"
-      fluid
-      className="d-flex align-items-center justify-content-center bg-light px-3 py-5"
-      style={{ minHeight: '100svh' }}
-    >
-      <Card className="login-card w-100 border-0 shadow-sm text-start" style={{ maxWidth: '440px' }}>
-        <Card.Body className="p-4 p-sm-5">
-          <p className="small text-secondary mb-2">Gestión de Inventario</p>
-          <Card.Title as="h1" className="h3 text-dark mt-0 mb-2">
-            Iniciar Sesión
-          </Card.Title>
-          <p className="text-secondary mb-4">Ingresa tus credenciales para continuar.</p>
+    <div className="login-container">
+      <Card className="login-card">
+        <Card.Body>
+          <div className="login-logo">
+            <CompanyLogo className="company-logo--auth" />
+            <h4>Gestión de Inventario</h4>
+            <p>Inicia sesión para continuar</p>
+          </div>
 
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && (
+            <Alert variant="danger" className="mb-3" style={{ fontSize: '0.88rem' }}>
+              {error}
+            </Alert>
+          )}
 
-          <Form onSubmit={handleSubmit} aria-busy={loading}>
-            <Form.Group className="mb-3" controlId="login-username">
-              <Form.Label>Username</Form.Label>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Usuario</Form.Label>
               <Form.Control
                 type="text"
-                name="username"
-                autoComplete="username"
-                maxLength={50}
-                required
+                placeholder="Ingresa tu usuario"
                 value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                disabled={loading}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
               />
             </Form.Group>
 
-            <Form.Group className="mb-4" controlId="login-password">
-              <Form.Label>Password</Form.Label>
+            <Form.Group className="mb-4">
+              <Form.Label>Contraseña</Form.Label>
               <Form.Control
                 type="password"
-                name="password"
-                autoComplete="current-password"
-                required
+                placeholder="Ingresa tu contraseña"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={loading}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </Form.Group>
 
-            <Button type="submit" className="w-100" disabled={loading}>
-              {loading ? 'Iniciando sesión…' : 'Iniciar Sesión'}
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner size="sm" animation="border" className="me-2" />
+                  Ingresando...
+                </>
+              ) : (
+                'Iniciar Sesión'
+              )}
             </Button>
           </Form>
 
-          <div className="text-center mt-4">
-            <Link to="/register">¿No tienes cuenta? Regístrate</Link>
+          <div className="login-footer">
+            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
           </div>
         </Card.Body>
       </Card>
-    </Container>
+    </div>
   );
 }
+
+export default Login;
