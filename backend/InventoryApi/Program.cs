@@ -16,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ?? throw new InvalidOperationException("La configuración 'ConnectionStrings:DefaultConnection' es obligatoria.")));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
