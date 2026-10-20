@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj": {}
+    "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-Inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj": {}
   },
   "projects": {
-    "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj": {
+    "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-Inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj",
+        "projectUniqueName": "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-Inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj",
         "projectName": "InventoryApi",
-        "projectPath": "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj",
+        "projectPath": "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-Inventario-CCL\\backend\\InventoryApi\\InventoryApi.csproj",
         "packagesPath": "C:\\Users\\harol\\.nuget\\packages\\",
-        "outputPath": "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-inventario-CCL\\backend\\InventoryApi\\obj\\",
+        "outputPath": "D:\\Documentos\\Prueba tecnica CCL\\Gestion-de-Inventario-CCL\\backend\\InventoryApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\harol\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -61,6 +61,10 @@
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[10.0.3, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[10.3.1, )"
             }
           },
           "imports": [

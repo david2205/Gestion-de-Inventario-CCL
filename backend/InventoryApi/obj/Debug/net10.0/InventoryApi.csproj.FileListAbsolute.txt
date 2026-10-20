@@ -47,3 +47,6 @@ D:\Documentos\Prueba tecnica CCL\Gestion-de-inventario-CCL\backend\InventoryApi\
 D:\Documentos\Prueba tecnica CCL\Gestion-de-inventario-CCL\backend\InventoryApi\obj\Debug\net10.0\InventoryApi.pdb
 D:\Documentos\Prueba tecnica CCL\Gestion-de-inventario-CCL\backend\InventoryApi\obj\Debug\net10.0\InventoryApi.genruntimeconfig.cache
 D:\Documentos\Prueba tecnica CCL\Gestion-de-inventario-CCL\backend\InventoryApi\obj\Debug\net10.0\ref\InventoryApi.dll
+D:\Documentos\Prueba tecnica CCL\Gestion-de-Inventario-CCL\backend\InventoryApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\Documentos\Prueba tecnica CCL\Gestion-de-Inventario-CCL\backend\InventoryApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\Documentos\Prueba tecnica CCL\Gestion-de-Inventario-CCL\backend\InventoryApi\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
