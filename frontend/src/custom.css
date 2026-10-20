@@ -1,0 +1,155 @@
+:root {
+  --ccl-blue: rgb(0, 87, 184);
+  --ccl-blue-alt: rgb(0, 118, 206);
+  --ccl-black: rgb(0, 0, 0);
+  --ccl-white: rgb(255, 255, 255);
+
+  --bs-primary: var(--ccl-blue);
+  --bs-primary-rgb: 0, 87, 184;
+  --bs-secondary: var(--ccl-blue-alt);
+  --bs-secondary-rgb: 0, 118, 206;
+  --bs-light-rgb: 255, 255, 255;
+  --bs-body-color: var(--ccl-black);
+  --bs-body-color-rgb: 0, 0, 0;
+  --bs-body-bg: var(--ccl-white);
+  --bs-heading-color: var(--ccl-blue);
+  --bs-link-color: var(--ccl-blue);
+  --bs-link-color-rgb: 0, 87, 184;
+  --bs-link-hover-color: var(--ccl-blue-alt);
+  --bs-link-hover-color-rgb: 0, 118, 206;
+  --bs-font-sans-serif: 'Segoe UI', Roboto, sans-serif;
+  --bs-body-font-family: var(--bs-font-sans-serif);
+  --bs-focus-ring-color: rgba(0, 87, 184, 0.25);
+  --toastify-font-family: var(--bs-font-sans-serif);
+}
+
+body {
+  color: var(--ccl-black);
+  background-color: var(--ccl-white);
+  font-family: var(--bs-font-sans-serif);
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* La utilidad bg-dark de Bootstrap también declara !important. */
+.navbar {
+  background-color: var(--ccl-blue) !important;
+  --bs-navbar-color: var(--ccl-white);
+  --bs-navbar-hover-color: var(--ccl-white);
+  --bs-navbar-active-color: var(--ccl-white);
+  --bs-navbar-brand-color: var(--ccl-white);
+  --bs-navbar-brand-hover-color: var(--ccl-white);
+  --bs-navbar-toggler-border-color: rgba(255, 255, 255, 0.5);
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus-visible {
+  background-color: var(--ccl-blue-alt);
+  border-radius: var(--bs-border-radius);
+}
+
+.btn-primary {
+  --bs-btn-color: var(--ccl-white);
+  --bs-btn-bg: var(--ccl-blue);
+  --bs-btn-border-color: var(--ccl-blue);
+  --bs-btn-hover-color: var(--ccl-white);
+  --bs-btn-hover-bg: var(--ccl-blue-alt);
+  --bs-btn-hover-border-color: var(--ccl-blue-alt);
+  --bs-btn-active-color: var(--ccl-white);
+  --bs-btn-active-bg: var(--ccl-blue-alt);
+  --bs-btn-active-border-color: var(--ccl-blue-alt);
+  --bs-btn-disabled-color: var(--ccl-white);
+  --bs-btn-disabled-bg: var(--ccl-blue);
+  --bs-btn-disabled-border-color: var(--ccl-blue);
+  --bs-btn-focus-shadow-rgb: 0, 87, 184;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--ccl-blue);
+  --bs-btn-border-color: var(--ccl-blue);
+  --bs-btn-hover-color: var(--ccl-white);
+  --bs-btn-hover-bg: var(--ccl-blue-alt);
+  --bs-btn-hover-border-color: var(--ccl-blue-alt);
+  --bs-btn-active-color: var(--ccl-white);
+  --bs-btn-active-bg: var(--ccl-blue-alt);
+  --bs-btn-active-border-color: var(--ccl-blue-alt);
+  --bs-btn-disabled-color: var(--ccl-blue);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--ccl-blue);
+  --bs-btn-focus-shadow-rgb: 0, 87, 184;
+}
+
+.btn-secondary {
+  --bs-btn-color: var(--ccl-white);
+  --bs-btn-bg: var(--ccl-blue-alt);
+  --bs-btn-border-color: var(--ccl-blue-alt);
+  --bs-btn-hover-color: var(--ccl-white);
+  --bs-btn-hover-bg: var(--ccl-blue);
+  --bs-btn-hover-border-color: var(--ccl-blue);
+  --bs-btn-active-color: var(--ccl-white);
+  --bs-btn-active-bg: var(--ccl-blue);
+  --bs-btn-active-border-color: var(--ccl-blue);
+  --bs-btn-disabled-bg: var(--ccl-blue-alt);
+  --bs-btn-disabled-border-color: var(--ccl-blue-alt);
+  --bs-btn-focus-shadow-rgb: 0, 118, 206;
+}
+
+a {
+  color: var(--ccl-blue);
+}
+
+a:hover {
+  color: var(--ccl-blue-alt);
+}
+
+/* Los encabezados existentes usan la utilidad text-dark. */
+:is(h1, h2, h3, h4, h5, h6).text-dark {
+  color: var(--ccl-blue) !important;
+}
+
+.card-header {
+  color: var(--ccl-white);
+  background-color: var(--ccl-blue);
+}
+
+.card-header :is(h1, h2, h3, h4, h5, h6, a) {
+  color: inherit;
+}
+
+.table {
+  --bs-table-color: var(--ccl-black);
+}
+
+.table > thead {
+  --bs-table-color: var(--ccl-white);
+  --bs-table-bg: var(--ccl-blue);
+  --bs-table-border-color: rgba(255, 255, 255, 0.3);
+  color: var(--ccl-white);
+  background-color: var(--ccl-blue);
+}
+
+.table > thead > tr > th {
+  color: var(--ccl-white);
+  background-color: var(--ccl-blue);
+}
+
+/* Los fondos success y danger conservan los colores de estado de Bootstrap. */
+.badge {
+  --bs-badge-color: var(--ccl-white);
+  font-weight: 600;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ccl-blue);
+  box-shadow: 0 0 0 0.25rem rgba(0, 87, 184, 0.2);
+}
+
+.login-card {
+  /* Permite combinar esta clase con la utilidad border-0 de Bootstrap. */
+  border-top: 4px solid var(--ccl-blue) !important;
+}

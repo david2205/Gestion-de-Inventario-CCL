@@ -43,7 +43,7 @@ export default function Login() {
       className="d-flex align-items-center justify-content-center bg-light px-3 py-5"
       style={{ minHeight: '100svh' }}
     >
-      <Card className="w-100 border-0 shadow-sm text-start" style={{ maxWidth: '440px' }}>
+      <Card className="login-card w-100 border-0 shadow-sm text-start" style={{ maxWidth: '440px' }}>
         <Card.Body className="p-4 p-sm-5">
           <p className="small text-secondary mb-2">Gestión de Inventario</p>
           <Card.Title as="h1" className="h3 text-dark mt-0 mb-2">
