@@ -19,7 +19,7 @@ export default function Navbar() {
   return (
     <BootstrapNavbar expand="lg" variant="dark" bg="dark" collapseOnSelect>
       <Container>
-        <BootstrapNavbar.Brand as={Link} to="/inventory">
+        <BootstrapNavbar.Brand as={Link} to="/">
           Gestión de Inventario
         </BootstrapNavbar.Brand>
 
@@ -30,7 +30,7 @@ export default function Navbar() {
 
         <BootstrapNavbar.Collapse id="inventory-navbar">
           <Nav className="me-auto">
-            <Nav.Link as={NavLink} to="/inventory" eventKey="inventory">
+            <Nav.Link as={NavLink} to="/" end eventKey="inventory">
               Inventario
             </Nav.Link>
             <Nav.Link as={NavLink} to="/products" eventKey="products">
